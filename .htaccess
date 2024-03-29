@@ -1,0 +1,20 @@
+RewriteEngine on
+RewriteBase /
+
+# Rewrite if the file does not exist
+RewriteCond %{REQUEST_FILENAME} !-f
+
+# Rewrite only if the URI does not start with public or pages
+RewriteCond %{REQUEST_URI} !^/(public|pages)
+
+# Rewrite any public file
+RewriteRule ([^/]*).(css|js|png|jpe?g)$ public/$1.$2 [L]
+
+# Redirect requests to the 'pages' folder
+RewriteCond %{THE_REQUEST} /pages/([^\s?]*) [NC]
+RewriteRule ^ %1 [L,NE,R=302]
+
+# Serve files directly from the 'pages' folder
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^((?!pages/).*)$ pages/$1 [L,NC]
