@@ -1,0 +1,14 @@
+{
+  "name": "yevhen/webbylab",
+  "type": "project",
+  "authors": [
+    {
+      "name": "Yevhen Lebid",
+      "email": "yevhenlebid51@gmail.com"
+    }
+  ],
+  "require": {},
+  "scripts": {
+    "webbylab": "php cli.php"
+  }
+}
