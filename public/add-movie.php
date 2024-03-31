@@ -1,6 +1,11 @@
 <?php
 
-require_once '../includes/_header.php'; ?>
+require_once '../src/libs/helpers.php';
+
+view('header', ['title' => 'Add Movie']);
+
+require_once '../autoload.php';
+?>
 
   <main class="py-5">
     <div class="container">
@@ -37,5 +42,4 @@ require_once '../includes/_header.php'; ?>
   </main>
 
 <?php
-
-require_once '../includes/_footer.php'; ?>
+view('footer'); ?>

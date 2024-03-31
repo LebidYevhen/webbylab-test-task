@@ -1,6 +1,17 @@
 <?php
 
-require_once '../includes/_header.php'; ?>
+session_start();
+
+require_once '../src/libs/helpers.php';
+
+if (empty($_SESSION['user'])) {
+    redirectTo('/login.php');
+}
+
+view('header', ['title' => 'Dashboard']);
+
+require_once '../autoload.php';
+?>
 
   <main class="py-5">
     <section class="mb-5">
@@ -87,5 +98,4 @@ require_once '../includes/_header.php'; ?>
   </main>
 
 <?php
-
-require_once '../includes/_footer.php'; ?>
+view('footer'); ?>
