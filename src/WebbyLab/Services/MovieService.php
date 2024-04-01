@@ -4,6 +4,8 @@ namespace WebbyLab\Services;
 
 use PDO;
 use PDOException;
+use stdClass;
+use WebbyLab\Actor;
 use WebbyLab\Database;
 use WebbyLab\Validator\Rules\Date;
 use WebbyLab\Validator\Rules\Required;
@@ -13,9 +15,12 @@ class MovieService
 {
     private Database $database;
 
+    private Actor $actor;
+
     public function __construct()
     {
         $this->database = new Database();
+        $this->actor = new Actor();
     }
 
     public function validateCreate(): Validator
@@ -136,5 +141,86 @@ class MovieService
           'movies' => $movies,
           'totalPages' => $totalPages
         ];
+    }
+
+    public function importMovies()
+    {
+        $items = $this->extractParts();
+
+        foreach ($items as $item) {
+            $actorsIds = $this->extractAuthors($item->actors);
+            $formatId = $this->extractFormat($item->format);
+            $release_date = strtotime($item->release_date.'-01-01');
+            $data = [
+              'name' => $item->name,
+              'release_date' => date('Y-m-d H:i:s', $release_date),
+              'format' => $formatId,
+              'user_id' => $_SESSION['user'],
+              'actors' => $actorsIds
+            ];
+
+            $this->handleCreate($data);
+        }
+    }
+
+    public function extractParts()
+    {
+        $file_tmp = $_FILES["file"]["tmp_name"];
+        $content = file($file_tmp, FILE_IGNORE_NEW_LINES);
+        $content = array_diff($content, array(''));
+        $rows = array_chunk($content, 4);
+
+        return array_map(function ($array) {
+            $item = new StdClass();
+            $item->name = str_replace('Title: ', '', $array[0]);
+            $item->release_date = str_replace('Release Year: ', '', $array[1]);
+            $item->format = str_replace('Format: ', '', $array[2]);
+            $item->actors = str_replace('Stars: ', '', $array[3]);
+            return $item;
+        }, $rows);
+    }
+
+    public function extractAuthors(string $authors)
+    {
+        $actors = explode(', ', $authors);
+        $actorsIds = [];
+        foreach ($actors as $actor) {
+            $actor = explode(' ', $actor);
+            $name = $actor[0];
+            $surname = $actor[1];
+
+            $query = 'INSERT INTO actors(name, surname) VALUES(:name, :surname)';
+
+            $this->database->query($query, [
+              'name' => $name,
+              'surname' => $surname,
+            ]);
+
+            $actorsIds[] = $this->database->id();
+        }
+
+        return $actorsIds;
+    }
+
+    public function extractFormat(string $formatName)
+    {
+        $query = 'SELECT * FROM formats where name = :format';
+        $format = $this->database->query($query, [
+          'format' => $formatName
+        ])->find();
+
+        if ($format) {
+            $formatId = $format['id'];
+        } else {
+            $query = 'INSERT INTO formats(name) VALUES(:name)';
+
+            $this->database->query($query, [
+              'name' => $formatName,
+            ]);
+
+            $formatId = $this->database->id();
+        }
+
+        return $formatId;
     }
 }

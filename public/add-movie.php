@@ -91,7 +91,7 @@ if (isPostRequest()) {
             <?php
             endif; ?>
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="submit" class="btn btn-primary">Create</button>
       </form>
     </div>
   </main>

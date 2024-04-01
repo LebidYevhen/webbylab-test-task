@@ -26,6 +26,7 @@ $nextPage = isset($_GET['page']) && $_GET['page'] < $movies['totalPages'] ? $_GE
         <a href="add-movie.php" class="btn btn-primary">Add Movie</a>
         <a href="add-actor.php" class="btn btn-primary">Add Actor</a>
         <a href="add-format.php" class="btn btn-primary">Add Format</a>
+        <a href="import-movies.php" class="btn btn-primary">Import Movies</a>
       </div>
     </section>
       <?php
