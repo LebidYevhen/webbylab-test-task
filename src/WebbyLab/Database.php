@@ -14,7 +14,7 @@ class Database
 
     public function __construct()
     {
-        $this->config = require __DIR__.'/../../config/config.php';
+        $this->config = require Paths::CONFIG_PATH;
         try {
             $dsn = http_build_query([
               'host' => $this->config['database']['host'],
