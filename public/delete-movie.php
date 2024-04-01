@@ -1,6 +1,6 @@
 <?php
 
-use WebbyLab\User;
+use WebbyLab\Movie;
 
 session_start();
 
@@ -12,5 +12,7 @@ if (empty($_SESSION['user'])) {
 
 require_once '../autoload.php';
 
-$user = new User();
-$user->logout();
+if (isPostRequest()) {
+    $movie = new Movie();
+    $movie->delete();
+}

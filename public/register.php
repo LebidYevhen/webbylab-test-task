@@ -1,5 +1,7 @@
 <?php
 
+use WebbyLab\User;
+
 session_start();
 
 require_once '../src/libs/helpers.php';
@@ -11,8 +13,6 @@ if (!empty($_SESSION['user'])) {
 require_once '../autoload.php';
 
 view('header', ['title' => 'Register']);
-
-use WebbyLab\User;
 
 if (isPostRequest()) {
     $register = new User();
@@ -44,7 +44,7 @@ if (isPostRequest()) {
             <?php
             endif; ?>
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="submit" class="btn btn-primary">Register</button>
       </form>
     </div>
   </main>

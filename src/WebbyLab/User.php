@@ -55,7 +55,7 @@ class User
             $handleLogin = $this->userService->handleLogin($data);
 
             if ($handleLogin['success'] === false) {
-                return ['errors' => ['email' => [$handleLogin['email']]], 'data' => $validator->getData()];
+                return ['errors' => ['password' => [$handleLogin['password']]], 'data' => $validator->getData()];
             }
 
             session_regenerate_id();

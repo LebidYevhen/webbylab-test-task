@@ -58,7 +58,7 @@ class UserService
         $passwordsMatch = password_verify($data['password'], $user['password'] ?? '');
 
         if (!$user || !$passwordsMatch) {
-            return ['success' => false, 'email' => 'Invalid credentials.'];
+            return ['success' => false, 'password' => 'Invalid credentials.'];
         }
 
         return ['user' => $user];

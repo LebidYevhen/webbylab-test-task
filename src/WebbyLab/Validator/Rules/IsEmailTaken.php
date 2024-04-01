@@ -7,9 +7,6 @@ namespace WebbyLab\Validator\Rules;
 use WebbyLab\Validator\AbstractValidator;
 use WebbyLab\Database;
 
-use function filter_var;
-use function is_string;
-
 class IsEmailTaken extends AbstractValidator
 {
     private Database $database;

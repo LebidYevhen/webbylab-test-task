@@ -6,13 +6,25 @@ namespace WebbyLab\Validator\Rules;
 
 use WebbyLab\Validator\AbstractValidator;
 
-class IsMatch extends AbstractValidator
+use function filter_var;
+use function is_string;
+
+class Date extends AbstractValidator
 {
-    private $message = 'This field is required.';
+    /**
+     * @var string
+     */
+    private $message = '{{ value }} is not a valid date.';
 
     public function validate($value): bool
     {
-        if (empty($value)) {
+        if ($value === null) {
+            return true;
+        }
+
+        $time = strtotime($value);
+
+        if (!$time) {
             $this->error($this->message, ['value' => $value]);
             return false;
         }

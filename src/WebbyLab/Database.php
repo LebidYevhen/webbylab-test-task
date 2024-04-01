@@ -14,7 +14,9 @@ class Database
     public function __construct()
     {
         try {
-            $this->connection = new PDO("mysql:host=127.0.0.1;dbname=webbylab", 'root', '');
+            $this->connection = new PDO("mysql:host=127.0.0.1;dbname=webbylab", 'root', '', [
+              PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+            ]);
             $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
             echo 'Connection failed: '.$e->getMessage();
@@ -43,5 +45,10 @@ class Database
     public function find()
     {
         return $this->stmt->fetch();
+    }
+
+    public function findAll()
+    {
+        return $this->stmt->fetchAll();
     }
 }
