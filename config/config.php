@@ -1,8 +1,10 @@
 <?php
 
-$database = [
-  'host' => 'localhost',
-  'db' => 'webbylab',
-  'user' => 'root',
-  'password' => ''
+return [
+  'database' => [
+    'host' => '127.0.0.1',
+    'db' => 'webbylab',
+    'user' => 'root',
+    'password' => ''
+  ]
 ];
