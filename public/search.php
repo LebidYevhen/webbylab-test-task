@@ -60,37 +60,41 @@ $nextPage = ($currentPage < $movies['totalPages']) ? $currentPage + 1 : false;
           </table>
         </div>
       </section>
-      <section>
-        <div class="container">
-          <nav aria-label="Movies Pagination">
-            <ul class="pagination text-center justify-content-center">
-              <li class="page-item <?php
-              echo empty($prevPage) ? 'disabled' : ''; ?>">
-                <a class="page-link" href="<?php
-                echo !empty($prevPage) ? "?s=$searchTerm&page=$prevPage" : '#'; ?>" aria-label="Previous">
-                  <span aria-hidden="true">&laquo;</span>
-                </a>
-              </li>
-                <?php
-                for ($i = 1; $i <= $movies['totalPages']; $i++) :?>
+        <?php
+        if ($movies['totalPages'] > 1): ?>
+          <section>
+            <div class="container">
+              <nav aria-label="Movies Pagination">
+                <ul class="pagination text-center justify-content-center">
                   <li class="page-item <?php
-                  echo (!isset($_GET['page']) && $i == 1) || (isset($_GET['page']) && $_GET['page'] == $i) ? 'active' : ''; ?>">
+                  echo empty($prevPage) ? 'disabled' : ''; ?>">
                     <a class="page-link" href="<?php
-                    echo "?s=$searchTerm&page=$i"; ?>"><?php
-                        echo $i; ?></a></li>
-                <?php
-                endfor; ?>
-              <li class="page-item <?php
-              echo empty($nextPage) ? 'disabled' : ''; ?>">
-                <a class="page-link" href="<?php
-                echo !empty($nextPage) ? "?s=$searchTerm&page=$nextPage" : '#'; ?>" aria-label="Next">
-                  <span aria-hidden="true">&raquo;</span>
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </section>
+                    echo !empty($prevPage) ? "?s=$searchTerm&page=$prevPage" : '#'; ?>" aria-label="Previous">
+                      <span aria-hidden="true">&laquo;</span>
+                    </a>
+                  </li>
+                    <?php
+                    for ($i = 1; $i <= $movies['totalPages']; $i++) :?>
+                      <li class="page-item <?php
+                      echo (!isset($_GET['page']) && $i == 1) || (isset($_GET['page']) && $_GET['page'] == $i) ? 'active' : ''; ?>">
+                        <a class="page-link" href="<?php
+                        echo "?s=$searchTerm&page=$i"; ?>"><?php
+                            echo $i; ?></a></li>
+                    <?php
+                    endfor; ?>
+                  <li class="page-item <?php
+                  echo empty($nextPage) ? 'disabled' : ''; ?>">
+                    <a class="page-link" href="<?php
+                    echo !empty($nextPage) ? "?s=$searchTerm&page=$nextPage" : '#'; ?>" aria-label="Next">
+                      <span aria-hidden="true">&raquo;</span>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </section>
+        <?php
+        endif; ?>
     <?php
     endif; ?>
 </main>
