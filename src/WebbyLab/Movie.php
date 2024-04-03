@@ -7,19 +7,19 @@ use WebbyLab\Services\MovieService;
 class Movie
 {
     private MovieService $movieService;
+    private Database $database;
 
     public function __construct()
     {
         $this->movieService = new MovieService();
+        $this->database = new Database();
     }
 
     public function create()
     {
-        $releaseDate = strtotime($_POST['release_date']);
-
         $fields = [
           'name' => $_POST['name'],
-          'release_date' => date('Y-m-d H:i:s', $releaseDate),
+          'release_date' => $_POST['release_date'],
           'format' => $_POST['format'],
           'actors' => $_POST['actors'] ?? []
         ];
@@ -30,6 +30,12 @@ class Movie
             $data = $validator->getData();
 
             $this->movieService->handleCreate($data);
+
+            session_start();
+            $_SESSION['successStatus'] = [
+              'success' => true,
+              'message' => '1 Movie created.'
+            ];
 
             redirectTo('/add-movie.php');
         }
@@ -47,10 +53,26 @@ class Movie
 
         if ($validator->validate($fields) === true) {
             $data = $validator->getData();
+            $movie = $this->getMovieById($data['movie_id']);
+
+            session_start();
+            $_SESSION['successStatus'] = [
+              'success' => true,
+              'message' => "Movie {$movie['name']} deleted."
+            ];
 
             $this->movieService->handleDelete($data);
 
-            redirectTo('/dashboard.php');
+            $redirectPath = isset($_POST['page']) ? '/dashboard.php'.'?page='.$_POST['page'] : '/dashboard.php';
+
+            redirectTo($redirectPath);
         }
+    }
+
+    public function getMovieById($movieId)
+    {
+        return $this->database->query('SELECT * from movies WHERE id = :id', [
+          'id' => $movieId
+        ])->find();
     }
 }

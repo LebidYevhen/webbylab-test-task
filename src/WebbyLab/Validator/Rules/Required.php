@@ -12,6 +12,10 @@ class Required extends AbstractValidator
 
     public function validate($value): bool
     {
+        if (is_string($value)) {
+            $value = trim($value);
+        }
+
         if (empty($value)) {
             $this->error($this->message, ['value' => $value]);
             return false;

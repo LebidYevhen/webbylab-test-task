@@ -20,21 +20,37 @@ require_once '../autoload.php';
 $movieService = new MovieService();
 
 if (isPostRequest()) {
-    if (isset($_FILES["file"]) && $_FILES["file"]["error"] == 0) {
-        $movieService->importMovies();
-        redirectTo('/import-movies.php');
-    } else {
-        echo "Error uploading file.";
-    }
+    $validate = $movieService->importMovies();
 }
 ?>
 
   <main class="py-5">
+      <?php
+      if (!empty($_SESSION['successStatus'])) : ?>
+        <div class="container">
+            <?php
+            foreach ($_SESSION['successStatus']['messages'] as $message): ?>
+              <h2 class="text-center m-0 text-success"><?php
+                  echo $message; ?>
+              </h2>
+            <?php
+            endforeach; ?>
+            <?php
+            unset($_SESSION['successStatus']); ?>
+        </div>
+      <?php
+      endif; ?>
     <div class="container">
       <form action="import-movies.php" method="post" enctype="multipart/form-data">
         <div class="mb-3">
           <label for="file" class="form-label">Name</label>
           <input type="file" class="form-control" id="file" name="file">
+            <?php
+            if (!empty($validate['errors']['file'])): ?>
+              <div class="form-text text-danger"><?php
+                  echo $validate['errors']['file'][0]; ?></div>
+            <?php
+            endif; ?>
         </div>
         <button type="submit" class="btn btn-primary">Import</button>
       </form>

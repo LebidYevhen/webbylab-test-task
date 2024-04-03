@@ -10,13 +10,13 @@ view('header', ['title' => 'Search']);
 
 require_once '../autoload.php';
 
-if (isGetRequest()) {
-    $searchTerm = $_GET['s'];
-    $movieService = new MovieService();
-    $movies = $movieService->getMovies($searchTerm);
-    $prevPage = isset($_GET['page']) && $_GET['page'] > 1 ? $_GET['page'] - 1 : null;
-    $nextPage = isset($_GET['page']) && $_GET['page'] < $movies['totalPages'] ? $_GET['page'] + 1 : null;
-}
+
+$searchTerm = $_GET['s'] ?? null;
+$movieService = new MovieService();
+$movies = $movieService->getMovies($searchTerm);
+$currentPage = $_GET['page'] ?? 1;
+$prevPage = ($currentPage > 1) ? $currentPage - 1 : false;
+$nextPage = ($currentPage < $movies['totalPages']) ? $currentPage + 1 : false;
 ?>
 
 <main class="py-5">
@@ -65,9 +65,9 @@ if (isGetRequest()) {
           <nav aria-label="Movies Pagination">
             <ul class="pagination text-center justify-content-center">
               <li class="page-item <?php
-              echo $prevPage ?? 'disabled' ?>">
+              echo empty($prevPage) ? 'disabled' : ''; ?>">
                 <a class="page-link" href="<?php
-                echo isset($prevPage) ? "?s=$searchTerm&page=$prevPage" : '#'; ?>" aria-label="Previous">
+                echo !empty($prevPage) ? "?s=$searchTerm&page=$prevPage" : '#'; ?>" aria-label="Previous">
                   <span aria-hidden="true">&laquo;</span>
                 </a>
               </li>
@@ -81,9 +81,9 @@ if (isGetRequest()) {
                 <?php
                 endfor; ?>
               <li class="page-item <?php
-              echo $nextPage ?? 'disabled' ?>">
+              echo empty($nextPage) ? 'disabled' : ''; ?>">
                 <a class="page-link" href="<?php
-                echo isset($nextPage) ? "?s=$searchTerm&page=$nextPage" : '#'; ?>" aria-label="Next">
+                echo !empty($nextPage) ? "?s=$searchTerm&page=$nextPage" : '#'; ?>" aria-label="Next">
                   <span aria-hidden="true">&raquo;</span>
                 </a>
               </li>

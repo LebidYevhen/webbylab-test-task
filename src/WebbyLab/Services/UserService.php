@@ -26,7 +26,7 @@ class UserService
         ]);
     }
 
-    public function handleCreate(array $data): void
+    public function handleCreate(array $data)
     {
         $password = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => 12]);
 
@@ -36,6 +36,8 @@ class UserService
           'email' => $data['email'],
           'password' => $password,
         ]);
+
+        return $this->database->id();
     }
 
     public function validateLogin(): Validator

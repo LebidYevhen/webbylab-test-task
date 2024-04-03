@@ -6,12 +6,18 @@ namespace WebbyLab\Validator\Rules;
 
 use WebbyLab\Validator\AbstractValidator;
 
-class Date extends AbstractValidator
-{
+use function ctype_digit;
+use function is_int;
+use function strval;
 
-    private string $invalidMessage = 'Invalid type given. Date expected.';
-    private string $minMessage = 'Date must be at least {{ limit }} year.';
-    private string $maxMessage = 'Date cannot be greater than {{ limit }} year.';
+class Integer extends AbstractValidator
+{
+    /**
+     * @var string
+     */
+    private $invalidMessage = 'This value should be of type {{ type }}.';
+    private $minMessage = 'This value should be {{ limit }} or more.';
+    private $maxMessage = 'This value should be {{ limit }} or less.';
 
     /**
      * @var int|null
@@ -28,30 +34,22 @@ class Date extends AbstractValidator
             return true;
         }
 
-        if (!$value) {
-            $this->error($this->invalidMessage, ['value' => $value]);
+        if (ctype_digit(strval($value)) === false) {
+            $this->error($this->invalidMessage, ['value' => $value, 'type' => 'integer']);
             return false;
         }
 
-        $date = date_parse($value);
-
-        if (is_int($this->min) && $date['year'] < $this->min) {
+        if (is_int($this->min) && $value < $this->min) {
             $this->error($this->minMessage, ['value' => $value, 'limit' => $this->min]);
             return false;
         }
 
-        if (is_int($this->max) && $date['year'] > $this->max) {
+        if (is_int($this->max) && $value > $this->max) {
             $this->error($this->maxMessage, ['value' => $value, 'limit' => $this->max]);
             return false;
         }
 
         return true;
-    }
-
-    public function message(string $message): self
-    {
-        $this->message = $message;
-        return $this;
     }
 
     public function invalidMessage(string $invalidMessage): self

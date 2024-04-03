@@ -28,11 +28,13 @@ class User
         if ($validator->validate($fields) === true) {
             $data = $validator->getData();
 
-            $this->userService->handleCreate($data);
+            $userId = $this->userService->handleCreate($data);
+
+            session_start();
 
             session_regenerate_id();
 
-            $_SESSION['user'] = $this->database->id();
+            $_SESSION['user'] = $userId;
 
             redirectTo('/dashboard.php');
         }

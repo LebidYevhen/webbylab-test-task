@@ -12,8 +12,8 @@ use function strlen;
 class StringLength extends AbstractValidator
 {
     private $invalidMessage = 'Invalid type given. String expected.';
-    private $minMessage = '{{ value }} must be at least {{ limit }} characters long';
-    private $maxMessage = '{{ value }} cannot be longer than {{ limit }} characters';
+    private $minMessage = 'Must be at least {{ limit }} characters long';
+    private $maxMessage = 'Cannot be longer than {{ limit }} characters';
 
     /**
      * @var int|null

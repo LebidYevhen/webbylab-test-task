@@ -5,9 +5,11 @@ namespace WebbyLab\Services;
 use PDO;
 use PDOException;
 use stdClass;
-use WebbyLab\Actor;
 use WebbyLab\Database;
 use WebbyLab\Validator\Rules\Date;
+use WebbyLab\Validator\Rules\FileUpload;
+use WebbyLab\Validator\Rules\Integer;
+use WebbyLab\Validator\Rules\IsMovieNameTaken;
 use WebbyLab\Validator\Rules\Required;
 use WebbyLab\Validator\Validator;
 
@@ -15,19 +17,16 @@ class MovieService
 {
     private Database $database;
 
-    private Actor $actor;
-
     public function __construct()
     {
         $this->database = new Database();
-        $this->actor = new Actor();
     }
 
     public function validateCreate(): Validator
     {
         return new Validator([
-          'name' => [new Required()],
-          'release_date' => [new Required(), new Date()],
+          'name' => [new Required(), new IsMovieNameTaken()],
+          'release_date' => [new Required(), (new Integer())->min(1850)->max(2024)],
           'format' => [new Required()],
           'actors' => [new Required()]
         ]);
@@ -69,7 +68,7 @@ class MovieService
         $query = 'INSERT INTO movies(name, release_date, format_id, user_id) VALUES(:name, :release_date, :format_id, :user_id)';
 
         $this->database->query($query, [
-          'name' => $data['name'],
+          'name' => htmlspecialchars($data['name'], ENT_QUOTES, 'UTF-8'),
           'release_date' => $data['release_date'],
           'format_id' => $data['format'],
           'user_id' => $_SESSION['user'],
@@ -93,9 +92,9 @@ class MovieService
         return $this->database->query('SELECT * FROM formats')->findAll();
     }
 
-    public function getActors($fields = '*')
+    public function getActors($fields = '*', $orderBy = 'name')
     {
-        return $this->database->query("SELECT $fields FROM actors")->findAll();
+        return $this->database->query("SELECT $fields FROM actors ORDER BY $orderBy")->findAll();
     }
 
     public function getMovies($searchTerm = null)
@@ -114,20 +113,36 @@ class MovieService
         $totalPages = ceil($total / $perPage);
 
         $query = '
-            SELECT m.id, m.name, m.release_date, f.name AS format_name, GROUP_CONCAT(a.name SEPARATOR ", ") AS actor_names
-            FROM movies m
-            INNER JOIN formats f ON m.format_id = f.id
-            LEFT JOIN movie_actors ma ON m.id = ma.movie_id
-            LEFT JOIN actors a ON ma.actor_id = a.id';
+            SELECT
+                m.id,
+                m.name,
+                m.release_date,
+                f.name AS format_name,
+                GROUP_CONCAT(CONCAT(a.name, " ", a.surname) SEPARATOR ", ") AS actor_names
+            FROM
+                movies m
+            INNER JOIN
+                formats f ON m.format_id = f.id
+            LEFT JOIN
+                movie_actors ma ON m.id = ma.movie_id
+            LEFT JOIN
+                actors a ON ma.actor_id = a.id';
 
         if ($searchTerm) {
-            $query .= " WHERE m.name LIKE '%$searchTerm%' ";
+            $query .= " 
+            WHERE
+                m.name LIKE '%$searchTerm%' OR
+                a.name LIKE '%$searchTerm%'
+            ";
         }
 
-        $query .= '
-            GROUP BY m.id
-            ORDER BY m.name
-            LIMIT :offset, :per_page';
+        $query .= "
+            GROUP BY
+                m.id, m.name, m.release_date, f.name
+            ORDER BY
+                m.name
+            LIMIT
+                :offset, :per_page";
 
         $stmt = $this->database->connection->prepare($query);
 
@@ -143,24 +158,75 @@ class MovieService
         ];
     }
 
+    public function validateImport(): Validator
+    {
+        return new Validator([
+          'file' => [(new FileUpload())->extensions(['txt'])]
+        ]);
+    }
+
     public function importMovies()
     {
-        $items = $this->extractParts();
+        $fields = [
+          'file' => $_FILES['file'],
+        ];
 
-        foreach ($items as $item) {
-            $actorsIds = $this->extractAuthors($item->actors);
-            $formatId = $this->extractFormat($item->format);
-            $release_date = strtotime($item->release_date.'-01-01');
-            $data = [
-              'name' => $item->name,
-              'release_date' => date('Y-m-d H:i:s', $release_date),
-              'format' => $formatId,
-              'user_id' => $_SESSION['user'],
-              'actors' => $actorsIds
+        $validator = $this->validateImport();
+
+        if ($validator->validate($fields) === true) {
+            $items = $this->extractParts();
+
+            $moviesCounter = 0;
+            $newActorsIds = [];
+            $newFormatsIds = [];
+            foreach ($items as $item) {
+                $actorsIds = $this->extractAuthors($item->actors);
+                $format = $this->extractFormat($item->format);
+                $movieCount = $this->database->query(
+                  "SELECT COUNT(*) FROM movies WHERE name = :name",
+                  [
+                    'name' => $item->name,
+                  ],
+                )->count();
+                if ($movieCount > 0) {
+                    continue;
+                }
+                $data = [
+                  'name' => $item->name,
+                  'release_date' => $item->release_date,
+                  'format' => $format['id'],
+                  'user_id' => $_SESSION['user'],
+                  'actors' => $actorsIds['actorsIds']
+                ];
+
+                $moviesCounter++;
+                if ($format['isNew']) {
+                    $newFormatsIds[] = $format['id'];
+                }
+                $newActorsIds = array_merge($newActorsIds, $actorsIds['newActorsIds']);
+                $this->handleCreate($data);
+            }
+
+            $actorsCounter = count(array_unique($newActorsIds));
+            $formatsCounter = count(array_unique($newFormatsIds));
+
+            $pluralizeMovie = $moviesCounter !== 1 ? 'Movies' : 'Movie';
+            $pluralizeActor = $actorsCounter !== 1 ? 'Actors' : 'Actor';
+            $pluralizeFormat = $formatsCounter !== 1 ? 'Formats' : 'Format';
+            session_start();
+            $_SESSION['successStatus'] = [
+              'success' => true,
+              'messages' => [
+                'movies' => "$moviesCounter $pluralizeMovie created.",
+                'actors' => "$actorsCounter $pluralizeActor created.",
+                'formats' => "$formatsCounter $pluralizeFormat created."
+              ]
             ];
 
-            $this->handleCreate($data);
+            redirectTo('/import-movies.php');
         }
+
+        return ['errors' => $validator->getErrors()];
     }
 
     public function extractParts()
@@ -184,26 +250,49 @@ class MovieService
     {
         $actors = explode(', ', $authors);
         $actorsIds = [];
+        $newActorsIds = [];
         foreach ($actors as $actor) {
             $actor = explode(' ', $actor);
             $name = $actor[0];
             $surname = $actor[1];
+            $actorId = null;
 
-            $query = 'INSERT INTO actors(name, surname) VALUES(:name, :surname)';
+            $authorCount = $this->database->query(
+              "SELECT COUNT(*) FROM actors WHERE name = :name AND surname = :surname",
+              [
+                'name' => $name,
+                'surname' => $surname,
+              ],
+            )->count();
 
-            $this->database->query($query, [
-              'name' => $name,
-              'surname' => $surname,
-            ]);
+            if ($authorCount > 0) {
+                $query = 'SELECT id FROM actors WHERE name = :name AND surname = :surname';
 
-            $actorsIds[] = $this->database->id();
+                $actorId = $this->database->query($query, [
+                  'name' => $name,
+                  'surname' => $surname,
+                ])->find()['id'];
+            } else {
+                $query = 'INSERT INTO actors(name, surname) VALUES(:name, :surname)';
+
+                $this->database->query($query, [
+                  'name' => $name,
+                  'surname' => $surname,
+                ]);
+
+                $actorId = $this->database->id();
+                $newActorsIds[] = $actorId;
+            }
+
+            $actorsIds[] = $actorId;
         }
 
-        return $actorsIds;
+        return ['actorsIds' => $actorsIds, 'newActorsIds' => $newActorsIds];
     }
 
-    public function extractFormat(string $formatName)
+    public function extractFormat(string $formatName): array
     {
+        $isNew = false;
         $query = 'SELECT * FROM formats where name = :format';
         $format = $this->database->query($query, [
           'format' => $formatName
@@ -219,8 +308,25 @@ class MovieService
             ]);
 
             $formatId = $this->database->id();
+            $isNew = true;
         }
 
-        return $formatId;
+        return ['id' => $formatId, 'isNew' => $isNew];
+    }
+
+    public function isFormatExists($formatName): bool
+    {
+        $formatCount = $this->database->query(
+          "SELECT COUNT(*) FROM formats WHERE name = :name",
+          [
+            'name' => $formatName,
+          ],
+        )->count();
+
+        if ($formatCount > 0) {
+            return true;
+        }
+
+        return false;
     }
 }

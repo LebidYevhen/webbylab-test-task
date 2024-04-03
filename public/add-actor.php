@@ -1,6 +1,7 @@
 <?php
 
 use WebbyLab\Actor;
+use WebbyLab\Services\MovieService;
 
 session_start();
 
@@ -14,6 +15,9 @@ view('header', ['title' => 'Add a new actor']);
 
 require_once '../autoload.php';
 
+$movieService = new MovieService();
+$actors = $movieService->getActors();
+
 if (isPostRequest()) {
     $actor = new Actor();
     $validate = $actor->create();
@@ -21,6 +25,16 @@ if (isPostRequest()) {
 ?>
 
   <main class="py-5">
+      <?php
+      if (!empty($_SESSION['successStatus']) && isset($_SESSION['successStatus']['message'])) : ?>
+        <div class="container mb-5">
+          <h2 class="text-center m-0 text-success"><?php
+              echo $_SESSION['successStatus']['message'];
+              unset($_SESSION['successStatus']);
+              ?></h2>
+        </div>
+      <?php
+      endif; ?>
     <div class="container">
       <form action="add-actor.php" method="post">
         <div class="mb-3">
@@ -48,6 +62,35 @@ if (isPostRequest()) {
         <button type="submit" class="btn btn-primary">Create</button>
       </form>
     </div>
+      <?php
+      if (!empty($actors)): ?>
+        <div class="container mt-5">
+          <h2>Actors</h2>
+          <section>
+            <table class="table table-hover mb-0">
+              <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Surname</th>
+              </tr>
+              </thead>
+              <tbody>
+              <?php
+              foreach ($actors as $actor): ?>
+                <tr>
+                  <th scope="row"><?php
+                      echo $actor['name']; ?></th>
+                  <td><?php
+                      echo $actor['surname']; ?></td>
+                </tr>
+              <?php
+              endforeach; ?>
+              </tbody>
+            </table>
+          </section>
+        </div>
+      <?php
+      endif; ?>
   </main>
 
 <?php

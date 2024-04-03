@@ -26,6 +26,16 @@ if (isPostRequest()) {
 ?>
 
   <main class="py-5">
+      <?php
+      if (!empty($_SESSION['successStatus']) && isset($_SESSION['successStatus']['message'])) : ?>
+        <div class="container mb-5">
+          <h2 class="text-center m-0 text-success"><?php
+              echo $_SESSION['successStatus']['message'];
+              unset($_SESSION['successStatus']);
+              ?></h2>
+        </div>
+      <?php
+      endif; ?>
     <div class="container">
       <form action="add-movie.php" method="post">
         <div class="mb-3">
@@ -41,7 +51,7 @@ if (isPostRequest()) {
         </div>
         <div class="mb-3">
           <label for="release_date" class="form-label">Release Date</label>
-          <input type="date" class="form-control" id="release_date" name="release_date" value="<?php
+          <input type="number" class="form-control" id="release_date" name="release_date" value="<?php
           echo $validate['data']['release_date'] ?? ''; ?>">
             <?php
             if (!empty($validate['errors']['release_date'])): ?>

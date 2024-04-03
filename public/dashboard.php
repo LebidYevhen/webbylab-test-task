@@ -16,11 +16,23 @@ require_once '../autoload.php';
 
 $movieService = new MovieService();
 $movies = $movieService->getMovies();
-$prevPage = isset($_GET['page']) && $_GET['page'] > 1 ? $_GET['page'] - 1 : null;
-$nextPage = isset($_GET['page']) && $_GET['page'] < $movies['totalPages'] ? $_GET['page'] + 1 : null;
+$currentPage = $_GET['page'] ?? 1;
+$prevPage = ($currentPage > 1) ? $currentPage - 1 : false;
+$nextPage = ($currentPage < $movies['totalPages']) ? $currentPage + 1 : false;
 ?>
 
   <main class="py-5">
+      <?php
+      if (!empty($_SESSION['successStatus'])) : ?>
+        <div class="container mb-5">
+          <h2 class="text-center m-0 text-success"><?php
+              echo $_SESSION['successStatus']['message']; ?>
+          </h2>
+            <?php
+            unset($_SESSION['successStatus']); ?>
+        </div>
+      <?php
+      endif; ?>
     <section class="mb-5">
       <div class="container d-flex justify-content-end gap-2">
         <a href="add-movie.php" class="btn btn-primary">Add Movie</a>
@@ -63,17 +75,44 @@ $nextPage = isset($_GET['page']) && $_GET['page'] < $movies['totalPages'] ? $_GE
                       echo $movie['format_name']; ?></td>
                   <td><?php
                       echo $movie['actor_names']; ?></td>
-                  <td class="d-flex">
-                    <!--                <form method="post" class="me-2">-->
-                    <!--                  <button type="submit" class="btn btn-primary disabled">Edit</button>-->
-                    <!--                </form>-->
-                    <form action="delete-movie.php" method="post">
-                      <input type="hidden" name="movie_id" value="<?php
-                      echo $movie['id']; ?>">
-                      <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
+                  <td>
+                    <button type="submit" class="btn btn-danger delete-movie" data-bs-toggle="modal"
+                            data-bs-target="#delete-movie-<?php
+                            echo $movie['id']; ?>">Delete
+                    </button>
                   </td>
                 </tr>
+                <!-- Modal -->
+                <div class="modal fade" id="delete-movie-<?php
+                echo $movie['id']; ?>" tabindex="-1" aria-labelledby="ModalLabel<?php
+                echo $movie['id']; ?>"
+                     aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h2 class="modal-title fs-5" id="ModalLabel<?php
+                        echo $movie['id']; ?>">Are you sure you want to delete <b><?php
+                                echo $movie['name']; ?></b> movie?</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <form action="delete-movie.php" method="post" class="delete-movie-form">
+                          <input type="hidden" name="movie_id" value="<?php
+                          echo $movie['id']; ?>">
+                          <input type="hidden" name="page" value="<?php
+                          echo $_GET['page']; ?>">
+                          <button type="submit" class="btn btn-danger" data-bs-toggle="modal-
+                      <?php
+                          echo $movie['id']; ?>"
+                                  data-bs-target="#delete-movie-<?php
+                                  echo $movie['id']; ?>">Delete
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               <?php
               endforeach; ?>
               </tbody>
@@ -85,9 +124,9 @@ $nextPage = isset($_GET['page']) && $_GET['page'] < $movies['totalPages'] ? $_GE
             <nav aria-label="Movies Pagination">
               <ul class="pagination text-center justify-content-center">
                 <li class="page-item <?php
-                echo $prevPage ?? 'disabled' ?>">
+                echo empty($prevPage) ? 'disabled' : ''; ?>">
                   <a class="page-link" href="<?php
-                  echo isset($prevPage) ? "?page=$prevPage" : '#'; ?>" aria-label="Previous">
+                  echo !empty($prevPage) ? "?page=$prevPage" : '#'; ?>" aria-label="Previous">
                     <span aria-hidden="true">&laquo;</span>
                   </a>
                 </li>
@@ -101,9 +140,9 @@ $nextPage = isset($_GET['page']) && $_GET['page'] < $movies['totalPages'] ? $_GE
                   <?php
                   endfor; ?>
                 <li class="page-item <?php
-                echo $nextPage ?? 'disabled' ?>">
+                echo empty($nextPage) ? 'disabled' : ''; ?>">
                   <a class="page-link" href="<?php
-                  echo isset($nextPage) ? "?page=$nextPage" : '#'; ?>" aria-label="Next">
+                  echo !empty($nextPage) ? "?page=$nextPage" : '#'; ?>" aria-label="Next">
                     <span aria-hidden="true">&raquo;</span>
                   </a>
                 </li>
