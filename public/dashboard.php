@@ -14,9 +14,18 @@ view('header', ['title' => 'Dashboard']);
 
 require_once '../autoload.php';
 
+if (isset($_GET['page']) && !intval($_GET['page'])) {
+    redirectTo('/dashboard.php');
+}
+
+if (isset($_GET['page']) && !preg_match('/^\d+$/', $_GET['page'])) {
+    $number = preg_replace('/^(\d*).*$/', '$1', $_GET['page']);
+    redirectTo('/dashboard.php?page='.$number);
+}
+
 $movieService = new MovieService();
 $movies = $movieService->getMovies();
-$currentPage = $_GET['page'] ?? 1;
+$currentPage = isset($_GET['page']) ? intval($_GET['page']) : 1;
 $prevPage = ($currentPage > 1) ? $currentPage - 1 : false;
 $nextPage = ($currentPage < $movies['totalPages']) ? $currentPage + 1 : false;
 ?>
@@ -108,7 +117,7 @@ $nextPage = ($currentPage < $movies['totalPages']) ? $currentPage + 1 : false;
                         <input type="hidden" name="movie_id" value="<?php
                         echo $movie['id']; ?>">
                         <input type="hidden" name="page" value="<?php
-                        echo $_GET['page'] ?? ''; ?>">
+                        echo $currentPage; ?>">
                         <button type="submit" class="btn btn-danger" data-bs-toggle="modal-<?php
                         echo $movie['id']; ?>"
                                 data-bs-target="#delete-movie-<?php
@@ -138,8 +147,10 @@ $nextPage = ($currentPage < $movies['totalPages']) ? $currentPage + 1 : false;
                     </li>
                       <?php
                       for ($i = 1; $i <= $movies['totalPages']; $i++) :?>
+                          <?php
+                          ?>
                         <li class="page-item <?php
-                        echo (!isset($_GET['page']) && $i == 1) || (isset($_GET['page']) && $_GET['page'] == $i) ? 'active' : ''; ?>">
+                        echo (!$currentPage && $i == 1) || (!empty($currentPage) && $currentPage == $i) ? 'active' : ''; ?>">
                           <a class="page-link" href="<?php
                           echo "?page=$i"; ?>"><?php
                               echo $i; ?></a></li>

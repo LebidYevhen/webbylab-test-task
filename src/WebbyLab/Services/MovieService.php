@@ -100,7 +100,7 @@ class MovieService
     public function getMovies($searchTerm = null)
     {
         $perPage = 10;
-        $page = $_GET['page'] ?? 1;
+        $page = isset($_GET['page']) && intval($_GET['page']) ? intval($_GET['page']) : 1;
         $offset = ($page - 1) * $perPage;
 
         $query = 'SELECT COUNT(*) FROM movies';

@@ -10,11 +10,26 @@ view('header', ['title' => 'Search']);
 
 require_once '../autoload.php';
 
+if (isset($_GET['page']) && !intval($_GET['page'])) {
+    $query = http_build_query([
+      's' => $_GET['s'] ?? '',
+    ]);
+    redirectTo('/search.php?'.$query);
+}
+
+if (isset($_GET['page']) && !preg_match('/^\d+$/', $_GET['page'])) {
+    $number = preg_replace('/^(\d*).*$/', '$1', $_GET['page']);
+    $query = http_build_query([
+      's' => $_GET['s'] ?? '',
+      'page' => $number,
+    ]);
+    redirectTo('/search.php?'.$query);
+}
 
 $searchTerm = $_GET['s'] ?? null;
 $movieService = new MovieService();
 $movies = $movieService->getMovies($searchTerm);
-$currentPage = $_GET['page'] ?? 1;
+$currentPage = isset($_GET['page']) ? intval($_GET['page']) : 1;
 $prevPage = ($currentPage > 1) ? $currentPage - 1 : false;
 $nextPage = ($currentPage < $movies['totalPages']) ? $currentPage + 1 : false;
 ?>
@@ -76,7 +91,7 @@ $nextPage = ($currentPage < $movies['totalPages']) ? $currentPage + 1 : false;
                     <?php
                     for ($i = 1; $i <= $movies['totalPages']; $i++) :?>
                       <li class="page-item <?php
-                      echo (!isset($_GET['page']) && $i == 1) || (isset($_GET['page']) && $_GET['page'] == $i) ? 'active' : ''; ?>">
+                      echo (!$currentPage && $i == 1) || (!empty($currentPage) && $currentPage == $i) ? 'active' : ''; ?>">
                         <a class="page-link" href="<?php
                         echo "?s=$searchTerm&page=$i"; ?>"><?php
                             echo $i; ?></a></li>
