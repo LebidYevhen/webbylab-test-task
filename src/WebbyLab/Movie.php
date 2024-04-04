@@ -63,7 +63,7 @@ class Movie
 
             $this->movieService->handleDelete($data);
 
-            $redirectPath = isset($_POST['page']) ? '/dashboard.php'.'?page='.$_POST['page'] : '/dashboard.php';
+            $redirectPath = !empty($_POST['page']) ? '/dashboard.php'.'?page='.$_POST['page'] : '/dashboard.php';
 
             redirectTo($redirectPath);
         }

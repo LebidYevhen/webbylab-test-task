@@ -82,42 +82,46 @@ $nextPage = ($currentPage < $movies['totalPages']) ? $currentPage + 1 : false;
                     </button>
                   </td>
                 </tr>
-                <!-- Modal -->
-                <div class="modal fade" id="delete-movie-<?php
-                echo $movie['id']; ?>" tabindex="-1" aria-labelledby="ModalLabel<?php
-                echo $movie['id']; ?>"
-                     aria-hidden="true">
-                  <div class="modal-dialog">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h2 class="modal-title fs-5" id="ModalLabel<?php
-                        echo $movie['id']; ?>">Are you sure you want to delete <b><?php
-                                echo $movie['name']; ?></b> movie?</h2>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                      </div>
-                      <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <form action="delete-movie.php" method="post" class="delete-movie-form">
-                          <input type="hidden" name="movie_id" value="<?php
-                          echo $movie['id']; ?>">
-                          <input type="hidden" name="page" value="<?php
-                          echo $_GET['page'] ?? ''; ?>">
-                          <button type="submit" class="btn btn-danger" data-bs-toggle="modal-
-                      <?php
-                          echo $movie['id']; ?>"
-                                  data-bs-target="#delete-movie-<?php
-                                  echo $movie['id']; ?>">Delete
-                          </button>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               <?php
               endforeach; ?>
               </tbody>
             </table>
           </div>
+            <?php
+            foreach ($movies['movies'] as $movie): ?>
+              <!-- Modal -->
+              <div class="modal fade" id="delete-movie-<?php
+              echo $movie['id']; ?>" tabindex="-1" aria-labelledby="ModalLabel<?php
+              echo $movie['id']; ?>"
+                   aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h2 class="modal-title fs-5" id="ModalLabel<?php
+                      echo $movie['id']; ?>">Are you sure you want to delete <b><?php
+                              echo $movie['name']; ?></b> movie?</h2>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                      <form action="delete-movie.php" method="post" class="delete-movie-form">
+                        <input type="hidden" name="movie_id" value="<?php
+                        echo $movie['id']; ?>">
+                        <input type="hidden" name="page" value="<?php
+                        echo $_GET['page'] ?? ''; ?>">
+                        <button type="submit" class="btn btn-danger" data-bs-toggle="modal-<?php
+                        echo $movie['id']; ?>"
+                                data-bs-target="#delete-movie-<?php
+                                echo $movie['id']; ?>">
+                          Delete
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <?php
+            endforeach; ?>
         </section>
           <?php
           if ($movies['totalPages'] > 1): ?>
