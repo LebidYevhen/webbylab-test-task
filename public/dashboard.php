@@ -101,7 +101,7 @@ $nextPage = ($currentPage < $movies['totalPages']) ? $currentPage + 1 : false;
                           <input type="hidden" name="movie_id" value="<?php
                           echo $movie['id']; ?>">
                           <input type="hidden" name="page" value="<?php
-                          echo $_GET['page']; ?>">
+                          echo $_GET['page'] ?? ''; ?>">
                           <button type="submit" class="btn btn-danger" data-bs-toggle="modal-
                       <?php
                           echo $movie['id']; ?>"

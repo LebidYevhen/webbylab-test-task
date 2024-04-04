@@ -132,7 +132,7 @@ class MovieService
             $query .= " 
             WHERE
                 m.name LIKE '%$searchTerm%' OR
-                a.name LIKE '%$searchTerm%'
+                CONCAT(a.name, ' ', a.surname) LIKE '%$searchTerm%'
             ";
         }
 
